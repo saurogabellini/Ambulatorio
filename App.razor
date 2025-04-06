@@ -1,6 +1,24 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Authorization  
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        @* CAMBIA DA RouteView A AuthorizeRouteView *@
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            @* (Opzionale ma consigliato) Mostra durante il controllo *@
+            <Authorizing>
+                <p>Controllo autorizzazione...</p>
+            </Authorizing>
+            @* (Opzionale) Cosa mostrare se l'utente è loggato ma non autorizzato
+            PER PAGINE CON POLITICHE/RUOLI SPECIFICI. Per [Authorize] semplice,
+            il redirect middleware di solito gestisce gli utenti NON loggati. *@
+            @*
+            <NotAuthorized>
+            <h1>Accesso Negato</h1>
+            <p>Non hai i permessi necessari per visualizzare questa pagina.</p>
+            <p><a href="/">Torna alla Home</a></p>
+            </NotAuthorized>
+            *@
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
