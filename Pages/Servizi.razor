@@ -1,0 +1,75 @@
+@page "/servizi"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>Gestione Servizi</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="() => NavigateToDetail(0)">Nuovo Servizio</button>
+    </div>
+</div>
+
+@if (servizi == null)
+{
+    <p><em>Caricamento in corso...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Descrizione</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var servizio in servizi)
+            {
+                <tr>
+                    <td>@servizio.Nome</td>
+                    <td>@servizio.Descrizione</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(servizio.Id)">Modifica</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteServizio(servizio)">Elimina</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Servizio> servizi;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadServizi();
+    }
+
+    private async Task LoadServizi()
+    {
+        servizi = await Task.Run(() => DbContext.Servizi.OrderBy(s => s.Nome).ToList());
+    }
+
+    private void NavigateToDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/servizio/{id}");
+    }
+
+    private async Task DeleteServizio(Servizio servizio)
+    {
+        if (await Task.Run(() => DbContext.Prenotazioni.Any(p => p.ServizioId == servizio.Id)))
+        {
+            // Non permettere l'eliminazione se ci sono prenotazioni associate
+            return;
+        }
+
+        DbContext.Servizi.Remove(servizio);
+        await DbContext.SaveChangesAsync();
+        await LoadServizi();
+    }
+}

@@ -1,0 +1,81 @@
+@page "/prenotazioni"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>Gestione Prenotazioni</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="() => NavigateToDetail(0)">Nuova Prenotazione</button>
+    </div>
+</div>
+
+@if (prenotazioni == null)
+{
+    <p><em>Caricamento in corso...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Data e Ora</th>
+                <th>Cliente</th>
+                <th>Operatore</th>
+                <th>Servizio</th>
+                <th>Durata</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var prenotazione in prenotazioni)
+            {
+                <tr>
+                    <td>@prenotazione.DataOraInizio.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@prenotazione.CognomeCliente @prenotazione.NomeCliente</td>
+                    <td>@prenotazione.Operatore.Cognome @prenotazione.Operatore.Nome</td>
+                    <td>@prenotazione.Servizio.Nome</td>
+                    <td>@((prenotazione.DataOraFine - prenotazione.DataOraInizio).TotalMinutes) minuti</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(prenotazione.Id)">Modifica</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePrenotazione(prenotazione)">Elimina</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Prenotazione> prenotazioni;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPrenotazioni();
+    }
+
+    private async Task LoadPrenotazioni()
+    {
+        prenotazioni = await Task.Run(() => 
+            DbContext.Prenotazioni
+                .Include(p => p.Operatore)
+                .Include(p => p.Servizio)
+                .OrderByDescending(p => p.DataOraInizio)
+                .ToList());
+    }
+
+    private void NavigateToDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/prenotazione/{id}");
+    }
+
+    private async Task DeletePrenotazione(Prenotazione prenotazione)
+    {
+        DbContext.Prenotazioni.Remove(prenotazione);
+        await DbContext.SaveChangesAsync();
+        await LoadPrenotazioni();
+    }
+}

@@ -1,0 +1,394 @@
+@page "/prenotazione/{Id:int}"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>@(Id == 0 ? "Nuova Prenotazione" : "Modifica Prenotazione")</h3>
+
+<div class="row">
+    <div class="col-md-8">
+        @if (Id == 0)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Ricerca Disponibilità</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filtroOperatore">Filtra per Operatore (opzionale)</label>
+                                <select class="form-control" id="filtroOperatore" @bind="filtroOperatoreId">
+                                    <option value="0">-- Tutti gli operatori --</option>
+                                    @foreach (var operatore in operatori)
+                                    {
+                                        <option value="@operatore.Id">@operatore.Cognome @operatore.Nome</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filtroServizio">Filtra per Servizio (opzionale)</label>
+                                <select class="form-control" id="filtroServizio" @bind="filtroServizioId">
+                                    <option value="0">-- Tutti i servizi --</option>
+                                    @foreach (var servizio in servizi)
+                                    {
+                                        <option value="@servizio.Id">@servizio.Nome</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="dataRicerca">Data</label>
+                                <input type="date" class="form-control" id="dataRicerca" @bind="dataRicerca" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button class="btn btn-primary" @onclick="CercaDisponibilita">Cerca Disponibilità</button>
+                        </div>
+                    </div>
+
+                    @if (slotDisponibili != null && slotDisponibili.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Operatore</th>
+                                        <th>Servizio</th>
+                                        <th>Orario</th>
+                                        <th>Durata</th>
+                                        <th>Azione</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var slot in slotDisponibili)
+                                    {
+                                        <tr>
+                                            <td>@slot.Operatore.Cognome @slot.Operatore.Nome</td>
+                                            <td>@slot.Servizio.Nome</td>
+                                            <td>@slot.OrarioInizio.ToString() - @slot.OrarioFine.ToString()</td>
+                                            <td>@slot.DurataMinuti minuti</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-success" @onclick="() => SelezionaSlot(slot)">Seleziona</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else if (ricercaEffettuata)
+                    {
+                        <div class="alert alert-info">
+                            Nessuna disponibilità trovata per i criteri selezionati.
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (slotSelezionato != null || Id != 0)
+        {
+            <div class="modal fade @((slotSelezionato != null || Id != 0) ? "show" : "")" tabindex="-1" role="dialog"
+                 style="display: @((slotSelezionato != null || Id != 0) ? "block" : "none")">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Titolo Dialog</h5>
+                            <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if (slotSelezionato != null)
+                            {
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Operatore</label>
+                                            <p class="form-control-static">@slotSelezionato.Operatore.Cognome @slotSelezionato.Operatore.Nome</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Servizio</label>
+                                            <p class="form-control-static">@slotSelezionato.Servizio.Nome</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Data e Ora</label>
+                                            <p class="form-control-static">@slotSelezionato.Data.ToString("dd/MM/yyyy") @slotSelezionato.OrarioInizio.ToString() - @slotSelezionato.OrarioFine.ToString()</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="nomeCliente">Nome Cliente</label>
+                                        <input type="text" class="form-control" id="nomeCliente" @bind="prenotazione.NomeCliente" required />
+                                        @if (string.IsNullOrEmpty(prenotazione.NomeCliente) && isSubmitted)
+                                        {
+                                            <div class="text-danger">Il nome del cliente è obbligatorio</div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="cognomeCliente">Cognome Cliente</label>
+                                        <input type="text" class="form-control" id="cognomeCliente" @bind="prenotazione.CognomeCliente" required />
+                                        @if (string.IsNullOrEmpty(prenotazione.CognomeCliente) && isSubmitted)
+                                        {
+                                            <div class="text-danger">Il cognome del cliente è obbligatorio</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="telefonoCliente">Telefono Cliente</label>
+                                        <input type="tel" class="form-control" id="telefonoCliente" @bind="prenotazione.TelefonoCliente" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="emailCliente">Email Cliente</label>
+                                        <input type="email" class="form-control" id="emailCliente" @bind="prenotazione.EmailCliente" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="note">Note</label>
+                                <textarea class="form-control" id="note" @bind="prenotazione.Note" rows="3"></textarea>
+                            </div>
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" @onclick="SavePrenotazione">Salva Prenotazione</button>
+                            <button class="btn btn-secondary" @onclick="GoBack">Annulla</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Prenotazione prenotazione = new Prenotazione();
+    private List<Operatore> operatori = new List<Operatore>();
+    private List<Servizio> servizi = new List<Servizio>();
+    private bool isSubmitted = false;
+    private bool ricercaEffettuata = false;
+
+    // Filtri per la ricerca
+    private int filtroOperatoreId = 0;
+    private int filtroServizioId = 0;
+    private DateTime dataRicerca = DateTime.Today;
+
+    // Risultati della ricerca
+    private List<SlotDisponibileViewModel> slotDisponibili;
+    private SlotDisponibileViewModel slotSelezionato;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carica operatori e servizi
+        operatori = await Task.Run(() => DbContext.Operatori.OrderBy(o => o.Cognome).ThenBy(o => o.Nome).ToList());
+        servizi = await Task.Run(() => DbContext.Servizi.OrderBy(s => s.Nome).ToList());
+
+        if (Id != 0)
+        {
+            // Modifica di una prenotazione esistente
+            var existingPrenotazione = await Task.Run(() => 
+                DbContext.Prenotazioni
+                    .Include(p => p.Operatore)
+                    .Include(p => p.Servizio)
+                    .Include(p => p.SlotDisponibilita)
+                    .FirstOrDefault(p => p.Id == Id));
+                    
+            if (existingPrenotazione != null)
+            {
+                prenotazione = existingPrenotazione;
+            }
+        }
+    }
+
+    private void CloseModal()
+    {
+        slotSelezionato = null;
+    }
+
+    private async Task CercaDisponibilita()
+    {
+        ricercaEffettuata = true;
+        
+        // Ottieni il giorno della settimana (1-7, dove 1 è lunedì)
+        int giornoSettimana = ((int)dataRicerca.DayOfWeek + 6) % 7 + 1;
+
+        // Ottieni gli slot di disponibilità per il giorno selezionato
+        var query = DbContext.SlotDisponibilita
+            .Include(s => s.Operatore)
+            .Include(s => s.Servizio)
+            .Where(s => s.Attivo && s.GiornoSettimana == giornoSettimana);
+
+        // Applica filtri se specificati
+        if (filtroOperatoreId > 0)
+        {
+            query = query.Where(s => s.OperatoreId == filtroOperatoreId);
+        }
+
+        if (filtroServizioId > 0)
+        {
+            query = query.Where(s => s.ServizioId == filtroServizioId);
+        }
+
+        // Ottieni gli slot disponibili
+        var slots = await Task.Run(() => query.ToList());
+
+        // Ottieni le assenze per la data selezionata
+        var assenze = await Task.Run(() => 
+            DbContext.Assenze
+                .Where(a => a.DataOraInizio.Date <= dataRicerca && a.DataOraFine.Date >= dataRicerca)
+                .ToList());
+
+        // Ottieni le prenotazioni esistenti per la data selezionata
+        var prenotazioniEsistenti = await Task.Run(() => 
+            DbContext.Prenotazioni
+                .Where(p => p.DataOraInizio.Date == dataRicerca.Date)
+                .ToList());
+
+        // Filtra gli slot disponibili escludendo quelli dove l'operatore è assente
+        var slotFiltrati = new List<SlotDisponibileViewModel>();
+        
+        foreach (var slot in slots)
+        {
+            // Verifica se l'operatore è assente in questo orario
+            bool operatoreAssente = assenze.Any(a => 
+                a.OperatoreId == slot.OperatoreId && 
+                (a.DataOraInizio.TimeOfDay <= slot.OraFine && a.DataOraFine.TimeOfDay >= slot.OraInizio));
+            
+            if (operatoreAssente)
+                continue;
+
+            // Crea slot orari in base alla durata
+            DateTime dataBase = dataRicerca.Date;
+            TimeSpan oraInizio = slot.OraInizio;
+            TimeSpan oraFine = oraInizio.Add(TimeSpan.FromMinutes(slot.DurataMinuti));
+            
+            while (oraFine <= slot.OraFine)
+            {
+                // Verifica se questo slot orario è già prenotato
+                DateTime slotInizio = dataBase.Add(oraInizio);
+                DateTime slotFine = dataBase.Add(oraFine);
+                
+                bool slotOccupato = prenotazioniEsistenti.Any(p => 
+                    p.OperatoreId == slot.OperatoreId && 
+                    ((p.DataOraInizio < slotFine && p.DataOraFine > slotInizio) || 
+                     (p.DataOraInizio == slotInizio && p.DataOraFine == slotFine)));
+                
+                if (!slotOccupato)
+                {
+                    slotFiltrati.Add(new SlotDisponibileViewModel
+                    {
+                        SlotId = slot.Id,
+                        OperatoreId = slot.OperatoreId,
+                        ServizioId = slot.ServizioId,
+                        Operatore = slot.Operatore,
+                        Servizio = slot.Servizio,
+                        Data = dataRicerca,
+                        OrarioInizio = oraInizio,
+                        OrarioFine = oraFine,
+                        DurataMinuti = slot.DurataMinuti
+                    });
+                }
+                
+                // Passa allo slot successivo
+                oraInizio = oraFine;
+                oraFine = oraInizio.Add(TimeSpan.FromMinutes(slot.DurataMinuti));
+            }
+        }
+        
+        // Ordina gli slot per operatore, servizio e orario
+        slotDisponibili = slotFiltrati
+            .OrderBy(s => s.Operatore.Cognome)
+            .ThenBy(s => s.Operatore.Nome)
+            .ThenBy(s => s.Servizio.Nome)
+            .ThenBy(s => s.OrarioInizio)
+            .ToList();
+    }
+
+    private void SelezionaSlot(SlotDisponibileViewModel slot)
+    {
+        slotSelezionato = slot;
+        
+        // Prepopola i dati della prenotazione
+        prenotazione.OperatoreId = slot.OperatoreId;
+        prenotazione.ServizioId = slot.ServizioId;
+        prenotazione.SlotDisponibilitaId = slot.SlotId;
+        prenotazione.DataOraInizio = slot.Data.Add(slot.OrarioInizio);
+        prenotazione.DataOraFine = slot.Data.Add(slot.OrarioFine);
+        prenotazione.DataPrenotazione = DateTime.Now;
+    }
+
+    private async Task SavePrenotazione()
+    {
+        isSubmitted = true;
+
+        // Validazione
+        if (string.IsNullOrEmpty(prenotazione.NomeCliente) || 
+            string.IsNullOrEmpty(prenotazione.CognomeCliente) ||
+            prenotazione.OperatoreId == 0 ||
+            prenotazione.ServizioId == 0 ||
+            prenotazione.SlotDisponibilitaId == 0)
+        {
+            return;
+        }
+
+        if (Id == 0)
+        {
+            // Nuova prenotazione
+            DbContext.Prenotazioni.Add(prenotazione);
+        }
+        else
+        {
+            // Aggiornamento prenotazione esistente
+            DbContext.Prenotazioni.Update(prenotazione);
+        }
+
+        await DbContext.SaveChangesAsync();
+        GoBack();
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/prenotazioni");
+    }
+
+    // Classe per rappresentare uno slot disponibile
+    private class SlotDisponibileViewModel
+    {
+        public int SlotId { get; set; }
+        public int OperatoreId { get; set; }
+        public int ServizioId { get; set; }
+        public Operatore Operatore { get; set; }
+        public Servizio Servizio { get; set; }
+        public DateTime Data { get; set; }
+        public TimeSpan OrarioInizio { get; set; }
+        public TimeSpan OrarioFine { get; set; }
+        public int DurataMinuti { get; set; }
+    }
+}

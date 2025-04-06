@@ -1,0 +1,244 @@
+@page "/slot-disponibilita/{Id:int}"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>@(Id == 0 ? "Nuova Disponibilità" : "Modifica Disponibilità")</h3>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-group mb-3">
+            <label for="operatore">Operatore</label>
+            <select class="form-control" id="operatore" @bind="slotDisponibilita.OperatoreId">
+                <option value="0">-- Seleziona un operatore --</option>
+                @foreach (var operatore in operatori)
+                {
+                    <option value="@operatore.Id">@operatore.Cognome @operatore.Nome</option>
+                }
+            </select>
+            @if (slotDisponibilita.OperatoreId == 0 && isSubmitted)
+            {
+                <div class="text-danger">Selezionare un operatore</div>
+            }
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="servizio">Servizio</label>
+            <select class="form-control" id="servizio" @bind="slotDisponibilita.ServizioId">
+                <option value="0">-- Seleziona un servizio --</option>
+                @foreach (var servizio in servizi)
+                {
+                    <option value="@servizio.Id">@servizio.Nome</option>
+                }
+            </select>
+            @if (slotDisponibilita.ServizioId == 0 && isSubmitted)
+            {
+                <div class="text-danger">Selezionare un servizio</div>
+            }
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="giornoSettimana">Giorno della settimana</label>
+            <select class="form-control" id="giornoSettimana" @bind="slotDisponibilita.GiornoSettimana">
+                <option value="0">-- Seleziona un giorno --</option>
+                <option value="1">Lunedì</option>
+                <option value="2">Martedì</option>
+                <option value="3">Mercoledì</option>
+                <option value="4">Giovedì</option>
+                <option value="5">Venerdì</option>
+                <option value="6">Sabato</option>
+                <option value="7">Domenica</option>
+            </select>
+            @if (slotDisponibilita.GiornoSettimana == 0 && isSubmitted)
+            {
+                <div class="text-danger">Selezionare un giorno</div>
+            }
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="oraInizio">Ora inizio</label>
+                    <input type="text" class="form-control" id="oraInizio" @bind="oraInizioString" placeholder="HH:MM" />
+                    @if (string.IsNullOrEmpty(oraInizioString) && isSubmitted)
+                    {
+                        <div class="text-danger">Inserire l'ora di inizio (formato HH:MM)</div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="oraFine">Ora fine</label>
+                    <input type="text" class="form-control" id="oraFine" @bind="oraFineString" placeholder="HH:MM" />
+                    @if (string.IsNullOrEmpty(oraFineString) && isSubmitted)
+                    {
+                        <div class="text-danger">Inserire l'ora di fine (formato HH:MM)</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="durataMinuti">Durata appuntamento (minuti)</label>
+            <select class="form-control" id="durataMinuti" @bind="slotDisponibilita.DurataMinuti">
+                <option value="0">-- Seleziona durata --</option>
+                <option value="15">15 minuti</option>
+                <option value="30">30 minuti</option>
+                <option value="45">45 minuti</option>
+                <option value="60">60 minuti</option>
+                <option value="90">90 minuti</option>
+                <option value="120">120 minuti</option>
+            </select>
+            @if (slotDisponibilita.DurataMinuti == 0 && isSubmitted)
+            {
+                <div class="text-danger">Selezionare una durata</div>
+            }
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="attivo" @bind="slotDisponibilita.Attivo" />
+            <label class="form-check-label" for="attivo">
+                Attivo
+            </label>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Gestione Ricorrenza</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="usaRicorrenza" @bind="usaRicorrenza" />
+                    <label class="form-check-label" for="usaRicorrenza">
+                        Usa ricorrenza personalizzata
+                    </label>
+                </div>
+
+                @if (usaRicorrenza)
+                {
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="dataInizioValidita">Data inizio validità</label>
+                                <input type="date" class="form-control" id="dataInizioValidita" @bind="slotDisponibilita.DataInizioValidita" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="dataFineValidita">Data fine validità (opzionale)</label>
+                                <input type="date" class="form-control" id="dataFineValidita" @bind="slotDisponibilita.DataFineValidita" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="cicloGiorni">Ripeti ogni (giorni)</label>
+                        <input type="number" class="form-control" id="cicloGiorni" @bind="slotDisponibilita.CicloGiorni" min="1" />
+                        <small class="form-text text-muted">Esempio: 1 = ogni giorno, 2 = a giorni alterni, 7 = settimanale</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <button class="btn btn-primary" @onclick="SaveSlotDisponibilita">Salva</button>
+            <button class="btn btn-secondary" @onclick="GoBack">Annulla</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Data.Models.SlotDisponibilita slotDisponibilita = new Data.Models.SlotDisponibilita();
+    private List<Operatore> operatori = new List<Operatore>();
+    private List<Servizio> servizi = new List<Servizio>();
+    private bool isSubmitted = false;
+    private bool usaRicorrenza = false;
+    private string oraInizioString = "";
+    private string oraFineString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carica operatori e servizi
+        operatori = await Task.Run(() => DbContext.Operatori.OrderBy(o => o.Cognome).ThenBy(o => o.Nome).ToList());
+        servizi = await Task.Run(() => DbContext.Servizi.OrderBy(s => s.Nome).ToList());
+
+        if (Id != 0)
+        {
+            // Modifica di uno slot esistente
+            var existingSlot = await Task.Run(() => DbContext.SlotDisponibilita.Find(Id));
+            if (existingSlot != null)
+            {
+                slotDisponibilita = existingSlot;
+                oraInizioString = slotDisponibilita.OraInizio.ToString(@"hh\:mm");
+                oraFineString = slotDisponibilita.OraFine.ToString(@"hh\:mm");
+                usaRicorrenza = slotDisponibilita.CicloGiorni.HasValue || slotDisponibilita.DataInizioValidita.HasValue;
+            }
+        }
+        else
+        {
+            // Nuovo slot, imposta valori predefiniti
+            slotDisponibilita.Attivo = true;
+        }
+    }
+
+    private async Task SaveSlotDisponibilita()
+    {
+        isSubmitted = true;
+
+        // Validazione
+        if (slotDisponibilita.OperatoreId == 0 || 
+            slotDisponibilita.ServizioId == 0 || 
+            slotDisponibilita.GiornoSettimana == 0 ||
+            slotDisponibilita.DurataMinuti == 0 ||
+            string.IsNullOrEmpty(oraInizioString) ||
+            string.IsNullOrEmpty(oraFineString))
+        {
+            return;
+        }
+
+        // Parsing delle ore
+        if (TimeSpan.TryParse(oraInizioString, out TimeSpan oraInizio) && 
+            TimeSpan.TryParse(oraFineString, out TimeSpan oraFine))
+        {
+            // Assegna orari
+            slotDisponibilita.OraInizio = oraInizio;
+            slotDisponibilita.OraFine = oraFine;
+
+            // Gestione ricorrenza
+            if (!usaRicorrenza)
+            {
+                slotDisponibilita.DataInizioValidita = null;
+                slotDisponibilita.DataFineValidita = null;
+                slotDisponibilita.CicloGiorni = null;
+            }
+            else if (slotDisponibilita.CicloGiorni <= 0)
+            {
+                slotDisponibilita.CicloGiorni = 1; // Default a ogni giorno
+            }
+
+            if (Id == 0)
+            {
+                // Nuovo slot
+                DbContext.SlotDisponibilita.Add(slotDisponibilita);
+            }
+            else
+            {
+                // Aggiornamento slot esistente
+                DbContext.SlotDisponibilita.Update(slotDisponibilita);
+            }
+
+            await DbContext.SaveChangesAsync();
+            GoBack();
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/slot-disponibilita");
+    }
+}

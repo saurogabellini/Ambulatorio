@@ -1,0 +1,82 @@
+@page "/operatori"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>Gestione Operatori</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="() => NavigateToDetail(0)">Nuovo Operatore</button>
+    </div>
+</div>
+
+@if (operatori == null)
+{
+    <p><em>Caricamento in corso...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Cognome</th>
+                <th>Nome</th>
+                <th>Codice Fiscale</th>
+                <th>Recapiti</th>
+                <th>Specializzazione</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var operatore in operatori)
+            {
+                <tr>
+                    <td>@operatore.Cognome</td>
+                    <td>@operatore.Nome</td>
+                    <td>@operatore.CodiceFiscale</td>
+                    <td>@operatore.Recapiti</td>
+                    <td>@operatore.Specializzazione</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(operatore.Id)">Modifica</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteOperatore(operatore)">Elimina</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Operatore> operatori;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOperatori();
+    }
+
+    private async Task LoadOperatori()
+    {
+        operatori = await Task.Run(() => DbContext.Operatori.OrderBy(o => o.Cognome).ThenBy(o => o.Nome).ToList());
+    }
+
+    private void NavigateToDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/operatore/{id}");
+    }
+
+    private async Task DeleteOperatore(Operatore operatore)
+    {
+        if (await Task.Run(() => DbContext.Prenotazioni.Any(p => p.OperatoreId == operatore.Id)))
+        {
+            // Non permettere l'eliminazione se ci sono prenotazioni associate
+            // In una versione più completa, si potrebbe mostrare un messaggio di errore
+            return;
+        }
+
+        DbContext.Operatori.Remove(operatore);
+        await DbContext.SaveChangesAsync();
+        await LoadOperatori();
+    }
+}

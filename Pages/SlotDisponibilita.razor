@@ -1,0 +1,108 @@
+@page "/slot-disponibilita"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>Gestione Disponibilità</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="() => NavigateToDetail(0)">Nuova Disponibilità</button>
+    </div>
+</div>
+
+@if (slotDisponibilita == null)
+{
+    <p><em>Caricamento in corso...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Operatore</th>
+                <th>Servizio</th>
+                <th>Giorno</th>
+                <th>Orario</th>
+                <th>Durata</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var slot in slotDisponibilita)
+            {
+                <tr>
+                    <td>@slot.Operatore.Cognome @slot.Operatore.Nome</td>
+                    <td>@slot.Servizio.Nome</td>
+                    <td>@GetGiornoSettimana(slot.GiornoSettimana)</td>
+                    <td>@slot.OraInizio.ToString(@"hh\:mm") - @slot.OraFine.ToString(@"hh\:mm")</td>
+                    <td>@slot.DurataMinuti minuti</td>
+                    <td>@(slot.Attivo ? "Attivo" : "Non attivo")</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(slot.Id)">Modifica</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteSlot(slot)">Elimina</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Data.Models.SlotDisponibilita> slotDisponibilita;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSlotDisponibilita();
+    }
+
+    private async Task LoadSlotDisponibilita()
+    {
+        slotDisponibilita = await Task.Run(() => 
+            DbContext.SlotDisponibilita
+                .Include(s => s.Operatore)
+                .Include(s => s.Servizio)
+                .ToList());
+
+                    //.OrderBy(s => s.Operatore.Cognome)
+            ///.ThenBy(s => s.GiornoSettimana)
+
+    //.ThenBy(s => s.OraInizio)
+    }
+
+    private string GetGiornoSettimana(int giorno)
+    {
+        return giorno switch
+        {
+            1 => "Lunedì",
+            2 => "Martedì",
+            3 => "Mercoledì",
+            4 => "Giovedì",
+            5 => "Venerdì",
+            6 => "Sabato",
+            7 => "Domenica",
+            _ => "Sconosciuto"
+        };
+    }
+
+    private void NavigateToDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/slot-disponibilita/{id}");
+    }
+
+    private async Task DeleteSlot(Data.Models.SlotDisponibilita slot)
+    {
+        if (await Task.Run(() => DbContext.Prenotazioni.Any(p => p.SlotDisponibilitaId == slot.Id)))
+        {
+            // Non permettere l'eliminazione se ci sono prenotazioni associate
+            return;
+        }
+
+        DbContext.SlotDisponibilita.Remove(slot);
+        await DbContext.SaveChangesAsync();
+        await LoadSlotDisponibilita();
+    }
+}

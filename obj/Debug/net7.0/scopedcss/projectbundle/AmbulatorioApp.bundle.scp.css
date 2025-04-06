@@ -1,0 +1,170 @@
+/* _content/AmbulatorioApp/Shared/MainLayout.razor.rz.scp.css */
+.page[b-0vpvi5ewqx] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main[b-0vpvi5ewqx] {
+    flex: 1;
+}
+
+.sidebar[b-0vpvi5ewqx] {
+    background-color: #00aab1;
+    /* Add this line to make sure the sidebar has a width in mobile view */
+    width: 65px;
+}
+
+.top-row[b-0vpvi5ewqx] {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
+
+    .top-row[b-0vpvi5ewqx]  a, .top-row .btn-link[b-0vpvi5ewqx] {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+    }
+
+    .top-row a:first-child[b-0vpvi5ewqx] {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+@media (max-width: 640.98px) {
+    .top-row:not(.auth)[b-0vpvi5ewqx] {
+        display: none;
+    }
+
+    .top-row.auth[b-0vpvi5ewqx] {
+        justify-content: space-between;
+    }
+
+    .top-row a[b-0vpvi5ewqx], .top-row .btn-link[b-0vpvi5ewqx] {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 641px) {
+    .page[b-0vpvi5ewqx] {
+        flex-direction: row;
+    }
+
+    .sidebar[b-0vpvi5ewqx] {
+        width: 65px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row[b-0vpvi5ewqx] {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .top-row[b-0vpvi5ewqx], article[b-0vpvi5ewqx] {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+/* _content/AmbulatorioApp/Shared/NavMenu.razor.rz.scp.css */
+.sidebar[b-dyuui942z0] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;    
+    transition: all 0.3s ease;
+    z-index: 1500; /* Increased z-index to ensure it's above all content */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Optional: adds shadow for better visual separation */
+}
+
+.sidebar.collapsed[b-dyuui942z0] {
+    width: 0px;
+}
+
+.sidebar.collapsed .nav-item .nav-link span[b-dyuui942z0] {
+    display: none;
+}
+
+.sidebar.collapsed .navbar-brand[b-dyuui942z0] {
+    overflow: hidden;
+    width: 0;
+    opacity: 0;
+}
+
+.navbar-toggler[b-dyuui942z0] {    
+    border: none;
+}
+
+.navbar-toggler:focus[b-dyuui942z0] {
+    outline: none;
+    box-shadow: none;
+}
+
+.top-row[b-dyuui942z0] {
+    height: 3.5rem;
+    background-color: rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand[b-dyuui942z0] {
+    font-size: 1.1rem;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-scrollable[b-dyuui942z0] {
+    height: calc(100% - 3.5rem);
+    overflow-y: auto;    
+}
+
+.nav-item[b-dyuui942z0] {
+    padding: 0.5rem 0;
+}
+
+.nav-link[b-dyuui942z0] {
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    white-space: nowrap;
+}
+
+.nav-link:hover[b-dyuui942z0] {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.oi[b-dyuui942z0] {
+    width: 2rem;
+    font-size: 1.1rem;
+    vertical-align: text-top;
+    top: -2px;
+}
+
+@media (max-width: 640.98px) {
+    .sidebar[b-dyuui942z0] {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1500; /* Make sure mobile version has the same z-index */
+        transform: translateX(-100%);
+    }
+
+    .sidebar.collapsed[b-dyuui942z0] {
+        width: 100%;
+        transform: translateX(-100%);
+    }
+
+    .sidebar:not(.collapsed)[b-dyuui942z0] {
+        transform: translateX(0);
+    }
+}

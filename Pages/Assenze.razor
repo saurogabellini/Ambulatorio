@@ -1,0 +1,78 @@
+@page "/assenze"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>Gestione Assenze Operatori</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="() => NavigateToDetail(0)">Nuova Assenza</button>
+    </div>
+</div>
+
+@if (assenze == null)
+{
+    <p><em>Caricamento in corso...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Operatore</th>
+                <th>Data e Ora Inizio</th>
+                <th>Data e Ora Fine</th>
+                <th>Motivo</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var assenza in assenze)
+            {
+                <tr>
+                    <td>@assenza.Operatore.Cognome @assenza.Operatore.Nome</td>
+                    <td>@assenza.DataOraInizio.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@assenza.DataOraFine.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@assenza.Motivo</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(assenza.Id)">Modifica</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAssenza(assenza)">Elimina</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Assenza> assenze;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAssenze();
+    }
+
+    private async Task LoadAssenze()
+    {
+        assenze = await Task.Run(() => 
+            DbContext.Assenze
+                .Include(a => a.Operatore)
+                .OrderByDescending(a => a.DataOraInizio)
+                .ToList());
+    }
+
+    private void NavigateToDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/assenza/{id}");
+    }
+
+    private async Task DeleteAssenza(Assenza assenza)
+    {
+        DbContext.Assenze.Remove(assenza);
+        await DbContext.SaveChangesAsync();
+        await LoadAssenze();
+    }
+}

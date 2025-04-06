@@ -1,0 +1,82 @@
+@page "/"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+
+<PageTitle>Home</PageTitle>
+
+<div class="text-center mt-4">
+    <h1>Gestione Prenotazioni Ambulatorio</h1>
+    <p class="lead">Sistema per la gestione delle prenotazioni mediche</p>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>Gestione Operatori</h5>
+            </div>
+            <div class="card-body">
+                <p>Gestisci l'anagrafica degli operatori dell'ambulatorio.</p>
+                <a href="/operatori" class="btn btn-primary">Vai a Operatori</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>Gestione Servizi</h5>
+            </div>
+            <div class="card-body">
+                <p>Gestisci l'anagrafica dei servizi offerti dall'ambulatorio.</p>
+                <a href="/servizi" class="btn btn-primary">Vai a Servizi</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>Gestione Disponibilità</h5>
+            </div>
+            <div class="card-body">
+                <p>Configura gli slot di disponibilità per operatori e servizi.</p>
+                <a href="/slot-disponibilita" class="btn btn-primary">Vai a Disponibilità</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>Gestione Assenze</h5>
+            </div>
+            <div class="card-body">
+                <p>Gestisci le assenze degli operatori.</p>
+                <a href="/assenze" class="btn btn-primary">Vai a Assenze</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>Gestione Prenotazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>Gestisci le prenotazioni dei clienti.</p>
+                <a href="/prenotazioni" class="btn btn-primary">Vai a Prenotazioni</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5>Nuova Prenotazione</h5>
+            </div>
+            <div class="card-body">
+                <p>Crea una nuova prenotazione per un cliente.</p>
+                <a href="/prenotazione/0" class="btn btn-success">Nuova Prenotazione</a>
+            </div>
+        </div>
+    </div>
+</div>

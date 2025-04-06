@@ -1,0 +1,166 @@
+@page "/assenza/{Id:int}"
+@using AmbulatorioApp.Data
+@using AmbulatorioApp.Data.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+
+<h3>@(Id == 0 ? "Nuova Assenza" : "Modifica Assenza")</h3>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-group mb-3">
+            <label for="operatore">Operatore</label>
+            <select class="form-control" id="operatore" @bind="assenza.OperatoreId">
+                <option value="0">-- Seleziona un operatore --</option>
+                @foreach (var operatore in operatori)
+                {
+                    <option value="@operatore.Id">@operatore.Cognome @operatore.Nome</option>
+                }
+            </select>
+            @if (assenza.OperatoreId == 0 && isSubmitted)
+            {
+                <div class="text-danger">Selezionare un operatore</div>
+            }
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="dataInizio">Data inizio</label>
+                    <input type="date" class="form-control" id="dataInizio" @bind="dataInizio" />
+                    @if (dataInizio == null && isSubmitted)
+                    {
+                        <div class="text-danger">Inserire la data di inizio</div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="oraInizio">Ora inizio</label>
+                    <input type="text" class="form-control" id="oraInizio" @bind="oraInizioString" placeholder="HH:MM" />
+                    @if (string.IsNullOrEmpty(oraInizioString) && isSubmitted)
+                    {
+                        <div class="text-danger">Inserire l'ora di inizio (formato HH:MM)</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="dataFine">Data fine</label>
+                    <input type="date" class="form-control" id="dataFine" @bind="dataFine" />
+                    @if (dataFine == null && isSubmitted)
+                    {
+                        <div class="text-danger">Inserire la data di fine</div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="oraFine">Ora fine</label>
+                    <input type="text" class="form-control" id="oraFine" @bind="oraFineString" placeholder="HH:MM" />
+                    @if (string.IsNullOrEmpty(oraFineString) && isSubmitted)
+                    {
+                        <div class="text-danger">Inserire l'ora di fine (formato HH:MM)</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="motivo">Motivo</label>
+            <textarea class="form-control" id="motivo" @bind="assenza.Motivo" rows="3"></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+            <button class="btn btn-primary" @onclick="SaveAssenza">Salva</button>
+            <button class="btn btn-secondary" @onclick="GoBack">Annulla</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Assenza assenza = new Assenza();
+    private List<Operatore> operatori = new List<Operatore>();
+    private bool isSubmitted = false;
+    private DateTime? dataInizio;
+    private DateTime? dataFine;
+    private string oraInizioString = "";
+    private string oraFineString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carica operatori
+        operatori = await Task.Run(() => DbContext.Operatori.OrderBy(o => o.Cognome).ThenBy(o => o.Nome).ToList());
+
+        if (Id != 0)
+        {
+            // Modifica di un'assenza esistente
+            var existingAssenza = await Task.Run(() => DbContext.Assenze.Find(Id));
+            if (existingAssenza != null)
+            {
+                assenza = existingAssenza;
+                dataInizio = assenza.DataOraInizio.Date;
+                dataFine = assenza.DataOraFine.Date;
+                oraInizioString = assenza.DataOraInizio.ToString("HH:mm");
+                oraFineString = assenza.DataOraFine.ToString("HH:mm");
+            }
+        }
+    }
+
+    private async Task SaveAssenza()
+    {
+        isSubmitted = true;
+
+        // Validazione
+        if (assenza.OperatoreId == 0 || 
+            dataInizio == null || 
+            string.IsNullOrEmpty(oraInizioString) ||
+            dataFine == null ||
+            string.IsNullOrEmpty(oraFineString))
+        {
+            return;
+        }
+
+        // Parsing delle ore
+        if (TimeSpan.TryParse(oraInizioString, out TimeSpan oraInizio) && 
+            TimeSpan.TryParse(oraFineString, out TimeSpan oraFine))
+        {
+            // Componi le date e orari
+            assenza.DataOraInizio = dataInizio.Value.Add(oraInizio);
+            assenza.DataOraFine = dataFine.Value.Add(oraFine);
+
+            // Verifica che la data di fine sia successiva alla data di inizio
+            if (assenza.DataOraFine <= assenza.DataOraInizio)
+            {
+                // Mostra un messaggio di errore
+                return;
+            }
+
+            if (Id == 0)
+            {
+                // Nuova assenza
+                DbContext.Assenze.Add(assenza);
+            }
+            else
+            {
+                // Aggiornamento assenza esistente
+                DbContext.Assenze.Update(assenza);
+            }
+
+            await DbContext.SaveChangesAsync();
+            GoBack();
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/assenze");
+    }
+}
