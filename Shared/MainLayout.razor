@@ -1,14 +1,17 @@
 ﻿@inherits LayoutComponentBase
-@using Microsoft.AspNetCore.Components.Web
-
-<PageTitle>AmbulatorioApp</PageTitle>
 
 <div class="page">
-    <div class="sidebar">
+    <div class="sidebar-container">
         <NavMenu />
     </div>
 
-    <main>    
+    <main>
+        <div class="top-row px-4">
+            <div class="page-title">@PageTitle</div>
+            <div class="auth-links">
+                <a href="account">Il Mio Account</a>
+            </div>
+        </div>
 
         <article class="content px-4">
             @Body
@@ -16,3 +19,6 @@
     </main>
 </div>
 
+@code {
+    private string PageTitle => "Amministrazione";
+}

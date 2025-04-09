@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AmbulatorioApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+edb195dfbfac8c83edb4610a73f8380877d75328")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4c5389f51538c43779c208e5b47b946e6ad0cda7")]
 [assembly: System.Reflection.AssemblyProductAttribute("AmbulatorioApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AmbulatorioApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

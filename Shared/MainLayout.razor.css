@@ -1,72 +1,86 @@
 .page {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    height: 100vh;
 }
 
 main {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    transition: margin-left 0.3s ease;
 }
 
-.sidebar {
-    background-color: #00aab1;
-    /* Add this line to make sure the sidebar has a width in mobile view */
-    width: 65px;
+.sidebar-container {
+    position: relative;
+}
+
+.sidebar-container + main {
+    margin-left: 60px;
+}
+
+/* Adjust main content when sidebar is expanded */
+:global(.sidebar.expand) + main {
+    margin-left: 300px;
 }
 
 .top-row {
     background-color: #f7f7f7;
     border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
+    justify-content: space-between;
     height: 3.5rem;
     display: flex;
     align-items: center;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
-    .top-row ::deep a, .top-row .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
+.top-row .page-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.top-row .auth-links {
+    margin-left: auto;
+}
+
+.top-row a {
+    margin-left: 1.5rem;
+    text-decoration: none;
+    color: #0071c1;
+}
+
+.top-row a:hover, .top-row a:focus {
+    text-decoration: underline;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .page {
+        flex-direction: column;
     }
 
-    .top-row a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row:not(.auth) {
-        display: none;
-    }
-
-    .top-row.auth {
-        justify-content: space-between;
-    }
-
-    .top-row a, .top-row .btn-link {
+    .sidebar-container + main {
         margin-left: 0;
     }
-}
 
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 65px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
+    :global(.sidebar.expand) + main {
+        margin-left: 0;
     }
 
     .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
+        justify-content: space-between;
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
     }
 
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+    .top-row a {
+        margin-left: 0;
     }
 }

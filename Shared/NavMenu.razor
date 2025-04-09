@@ -1,52 +1,98 @@
-<div class="sidebar @NavMenuCssClass" style="background-color: #00aab1;">
-    <div class="top-row navbar navbar-dark">
-        <div class="container-fluid">
-            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        </div>
-    </div>
+@using Microsoft.AspNetCore.Components.Web
 
-    <div class="nav-scrollable" style="background-color: #00aab1;" @onclick:stopPropagation>
-        <nav class="flex-column">
-            <div class="nav-item">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="oi oi-home" aria-hidden="true"></span> @if (!collapseNavMenu) { <span>Home</span> }
-                </NavLink>
+<div class="sidebar @NavMenuCssClass" @onclick="ToggleNavMenu">
+    <div class="top-row">
+        <button class="navbar-toggler" @onclick:stopPropagation="true" @onclick="ToggleNavMenu">
+            @if (collapseNavMenu)
+            {
+                <span class="navbar-toggler-icon">☰</span>
+            }
+            else
+            {
+                <span class="navbar-toggler-icon">✕</span>
+            }
+        </button>
+    </div>
+    
+    <div class="sidebar-content">
+        @if (!collapseNavMenu)
+        {
+            <div class="menu-header">
+               AMBULATORIO
             </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="operatori">
-                    <span class="oi oi-folder" aria-hidden="true"></span> @if (!collapseNavMenu) { <span>Operatori</span> }
-                </NavLink>
-            </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="servizi">
-                    <span class="oi oi-calculator" aria-hidden="true"></span> @if (!collapseNavMenu) { <span>Servizi</span> }
-                </NavLink>
-            </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="slot-disponibilita">
-                    <span class="oi oi-pencil" aria-hidden="true"></span> @if (!collapseNavMenu) { <span>Disponibilità</span> }
-                </NavLink>
-            </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="assenze">
-                    <span class="oi oi-transfer" aria-hidden="true"></span> @if (!collapseNavMenu) { <span>Assenza</span> }
-                </NavLink>
-            </div>
-            <div class="nav-item">
-                <NavLink class="nav-link" href="prenotazioni">
-                    <span class="oi oi-transfer" aria-hidden="true"></span> @if (!collapseNavMenu) { <span>Prenotazioni</span> }
-                </NavLink>
-            </div>
-        </nav>
+            <nav class="flex-column">
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="nav-text">Operatori</span>
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="servizi">
+                        <span class="nav-text">Servizi</span> 
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="assenze">
+                        <span class="nav-text">Assenze</span> 
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="slotdisponibilita">
+                        <span class="nav-text">Slot Disponiiblita</span> 
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="prenotazioni">
+                        <span class="nav-text">Prenotazioni</span> 
+                    </NavLink>
+                </div>
+            </nav>
+        }
+        else
+        {
+            <nav class="flex-column">
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <i class="icon home-icon"></i>
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="calendar">
+                        <i class="icon calendar-icon"></i>
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="search">
+                        <i class="icon search-icon"></i>
+                    </NavLink>
+                </div>
+            </nav>
+        }
+    </div>
+    
+    <div class="bottom-nav">
+        <div class="nav-item">
+            <NavLink class="nav-link" href="Identity/Account/Logout">
+                <i class="icon back-icon"></i>
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="Identity/Account/Login">
+                <i class="icon forward-icon"></i>
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="help">
+                <i class="icon help-icon"></i>
+            </NavLink>
+        </div>
     </div>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapsed" : null;
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : "expand";
 
     private void ToggleNavMenu()
     {
